@@ -2,44 +2,46 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { products } from '../../lib/brand';
-const catalog={
-  '2022-toyota-camry':['225/45R17','205/55R16'],
-  '2020-honda-crv':['235/55R18','225/65R17'],
-  '2019-f150':['275/65R18','265/70R17'],
-};
 export default function SpecialPage(){
-  const [ym,setYm]=useState('2022'); const [make,setMake]=useState('toyota'); const [model,setModel]=useState('camry');
-  const [sidewall,setSidewall]=useState('');
-  const key=`${ym}-${make}-${model}`;
-  const sizes=useMemo(()=>{
-    if(sidewall.trim()) return [sidewall.trim().toUpperCase()];
-    return catalog[key]||['225/45R17'];
-  },[key,sidewall]);
-  const matches=products.filter(p=>sizes.includes((p.size||'').toUpperCase())||sizes.some(s=> (p.size||'').includes(s.split('R')[0])));
-  const list=matches.length?matches:products.filter(p=>p.cat!=='Value').slice(0,4);
+  const [year,setYear]=useState('2022'); const [make,setMake]=useState('Toyota'); const [model,setModel]=useState('Camry');
+  const [sidewall,setSidewall]=useState('225/45R17'); const [bay,setBay]=useState('Bay A — Express');
+  const [slot,setSlot]=useState('Tomorrow 10:30 AM');
+  const matches=useMemo(()=>products.filter(p=>(p.size||'').includes(sidewall.split('R')[1]||'')||p.size===sidewall).slice(0,4),[sidewall]);
+  const list=matches.length?matches:products.slice(0,4);
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 md:px-6">
+    <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
       <header className="special-chrome reveal">
-        <p className="swiss-label">Fitment desk</p>
-        <h1 className="swiss-brand mt-2" style={{fontSize:'clamp(2rem,5vw,3.5rem)'}}>Size finder</h1>
-        <p className="text-muted mt-3 text-sm">Year / make / model or paste a sidewall code.</p>
+        <p className="swiss-label">Desk / 03</p>
+        <h1 className="swiss-brand mt-2" style={{ fontSize: 'clamp(2.2rem,6vw,3.8rem)' }}>Fitment & bay booking</h1>
+        <div className="swiss-rule" />
+        <p className="text-muted text-sm">Vehicle size finder + install appointment.</p>
       </header>
-      <div className="mt-8 grid gap-3 md:grid-cols-4">
-        <input className="card-soft px-3 py-2" value={ym} onChange={e=>setYm(e.target.value)} placeholder="Year" />
-        <input className="card-soft px-3 py-2" value={make} onChange={e=>setMake(e.target.value)} placeholder="Make" />
-        <input className="card-soft px-3 py-2" value={model} onChange={e=>setModel(e.target.value)} placeholder="Model" />
-        <input className="card-soft px-3 py-2" value={sidewall} onChange={e=>setSidewall(e.target.value)} placeholder="225/45R17" />
+      <div id="bay" />
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="card-soft p-6 space-y-3">
+          <p className="font-semibold">Vehicle</p>
+          <div className="grid grid-cols-3 gap-2">
+            <input value={year} onChange={e=>setYear(e.target.value)} className="rounded-xl px-3 py-2 bg-surface" style={{border:'1px solid color-mix(in srgb, var(--muted) 30%, transparent)'}} placeholder="Year" />
+            <input value={make} onChange={e=>setMake(e.target.value)} className="rounded-xl px-3 py-2 bg-surface" style={{border:'1px solid color-mix(in srgb, var(--muted) 30%, transparent)'}} placeholder="Make" />
+            <input value={model} onChange={e=>setModel(e.target.value)} className="rounded-xl px-3 py-2 bg-surface" style={{border:'1px solid color-mix(in srgb, var(--muted) 30%, transparent)'}} placeholder="Model" />
+          </div>
+          <p className="font-semibold pt-2">Or sidewall</p>
+          <input value={sidewall} onChange={e=>setSidewall(e.target.value.toUpperCase())} className="w-full rounded-xl px-3 py-2 bg-surface" style={{border:'1px solid color-mix(in srgb, var(--muted) 30%, transparent)'}} />
+          <p className="text-sm text-muted">{year} {make} {model} → showing fits near {sidewall}</p>
+        </div>
+        <div className="card-soft p-6 space-y-3">
+          <p className="font-semibold">Book install bay</p>
+          <div className="flex flex-wrap gap-2">{['Bay A — Express','Bay B — Alignment','Bay C — Truck'].map(b=><button key={b} onClick={()=>setBay(b)} className="chip" style={{outline:bay===b?'2px solid var(--brand)':undefined}}>{b}</button>)}</div>
+          <div className="flex flex-wrap gap-2">{['Today 3:00 PM','Tomorrow 10:30 AM','Tomorrow 2:00 PM','Sat 9:00 AM'].map(s=><button key={s} onClick={()=>setSlot(s)} className="chip" style={{outline:slot===s?'2px solid var(--brand)':undefined}}>{s}</button>)}</div>
+          <p className="text-sm">Held (demo): <strong>{bay}</strong> · {slot}</p>
+          <Link href="/shop" className="btn-brand">Pick tires for this bay</Link>
+        </div>
       </div>
-      <p className="swiss-label mt-6">Matches · {sizes.join(' · ')}</p>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {list.map(p=>(
-          <Link key={p.id} href={`/product/${p.id}`} className="card-soft p-4 flex gap-3">
-            <img src={p.img} alt="" className="h-20 w-20 object-cover" />
-            <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted">{p.size} · ${p.price}</p></div>
-          </Link>
-        ))}
-      </div>
-      <Link href="/shop" className="btn-ghost mt-8 inline-flex">Browse full catalog</Link>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{list.map(p=>(
+        <Link key={p.id} href={`/product/${p.id}`} className="card-soft overflow-hidden">
+          <img src={p.img} alt="" className="aspect-video w-full object-cover" />
+          <div className="p-3"><p className="font-semibold text-sm">{p.name}</p><p className="text-xs text-muted">{p.size} · ${p.price}</p></div>
+        </Link>))}</div>
     </div>
   );
 }
